@@ -35,6 +35,12 @@
   .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
   .panel-head h2{font-size:17px;}
   .panel-sub{font-size:12.5px;color:var(--ink-soft);}
+  .panel-collapsible.collapsed .panel-head{margin-bottom:0;}
+  .panel-toggle{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font:inherit;font-size:12.5px;font-weight:600;color:var(--accent-strong);background:var(--accent-soft);border:none;border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;}
+  .panel-toggle:hover{background:var(--surface-2);}
+  .panel-chevron{display:inline-block;font-size:10px;transition:transform .2s ease;}
+  .panel-collapsible.collapsed .panel-chevron{transform:rotate(-90deg);}
+  .panel-collapsible.collapsed .panel-body{display:none;}
   .field-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
   @media (max-width:640px){.field-row{grid-template-columns:1fr;}}
   label.field-label{font-size:12px;font-weight:500;color:var(--ink-soft);margin-bottom:6px;display:block;}
@@ -47,14 +53,24 @@
   .qnum{font-size:12px;color:var(--accent);font-weight:700;min-width:20px;}
   .qtext{font-size:14px;font-weight:500;}
   .likert{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
-  .likert label{position:relative;}
+  .likert label{position:relative;display:block;}
   .likert input{position:absolute;opacity:0;inset:0;cursor:pointer;}
-  .likert span{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);border-radius:10px;padding:8px 4px;font-size:11px;color:var(--ink-soft);cursor:pointer;transition:.15s;}
+  .likert span{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;border:1px solid var(--line);border-radius:10px;padding:10px 4px 8px;font-size:11px;color:var(--ink-soft);cursor:pointer;transition:.15s;height:64px;line-height:1.25;}
   .likert span b{font-family:"Noto Serif KR",serif;font-size:15px;color:var(--ink);}
   .likert input:checked + span{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-strong);}
   .likert input:checked + span b{color:var(--accent-strong);}
   .likert input:focus-visible + span{outline:2px solid var(--accent);outline-offset:1px;}
-  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+  .likert-guide-label{font-size:11.5px;color:var(--ink-soft);margin-bottom:6px;font-weight:500;}
+  .likert-guide{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;}
+  .likert-guide-cell{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;border:1px dashed var(--line);border-radius:10px;padding:10px 4px 8px;font-size:11px;color:var(--ink-soft);height:64px;line-height:1.25;background:var(--surface-2);}
+  .likert-guide-cell b{font-family:"Noto Serif KR",serif;font-size:15px;color:var(--ink);}
+  .likert-mini{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+  .likert-mini label{position:relative;display:block;}
+  .likert-mini input{position:absolute;opacity:0;inset:0;cursor:pointer;}
+  .likert-mini span{display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;font-family:"Noto Serif KR",serif;font-size:16px;font-weight:700;color:var(--ink);cursor:pointer;transition:.15s;height:34px;}
+  .likert-mini input:checked + span{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-strong);}
+  .likert-mini input:focus-visible + span{outline:2px solid var(--accent);outline-offset:1px;}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 -20px 14px;padding:10px 20px;position:sticky;z-index:15;background:var(--surface);border-bottom:1px solid var(--line);}
   .tabs{display:flex;gap:6px;background:var(--surface-2);border-radius:10px;padding:4px;}
   .tab-btn{border:none;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);padding:7px 14px;border-radius:8px;cursor:pointer;}
   .tab-btn[aria-pressed="true"]{background:var(--surface);color:var(--accent-strong);box-shadow:var(--shadow);}
@@ -137,33 +153,39 @@
 </header>
 
 <main>
-  <section class="panel" id="storePanel">
+  <section class="panel panel-collapsible" id="storePanel">
     <div class="panel-head">
       <h2>1. 평가 매장 정보</h2>
       <span class="panel-sub">채널 → 채널계열 → 매장명 순서로 선택해주세요</span>
+      <button type="button" class="panel-toggle" id="storePanelToggle" aria-expanded="true"><span class="panel-chevron">▾</span>접기</button>
     </div>
-    <div class="field-row">
-      <div>
-        <label class="field-label" for="selChannelType">채널형태 <span class="required-star">*</span></label>
-        <select id="selChannelType"><option value="">선택</option></select>
-      </div>
-      <div>
-        <label class="field-label" for="selChannelGroup">채널계열 <span class="required-star">*</span></label>
-        <select id="selChannelGroup" disabled><option value="">선택</option></select>
-      </div>
-      <div>
-        <label class="field-label" for="selStoreName">매장명 <span class="required-star">*</span></label>
-        <select id="selStoreName" disabled><option value="">선택</option></select>
+    <div class="panel-body" id="storePanelBody">
+      <div class="field-row">
+        <div>
+          <label class="field-label" for="selChannelType">채널형태 <span class="required-star">*</span></label>
+          <select id="selChannelType"><option value="">선택</option></select>
+        </div>
+        <div>
+          <label class="field-label" for="selChannelGroup">채널계열 <span class="required-star">*</span></label>
+          <select id="selChannelGroup" disabled><option value="">선택</option></select>
+        </div>
+        <div>
+          <label class="field-label" for="selStoreName">매장명 <span class="required-star">*</span></label>
+          <select id="selStoreName" disabled><option value="">선택</option></select>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="panel disabled" id="commonPanel">
+  <section class="panel disabled panel-collapsible" id="commonPanel">
     <div class="panel-head">
       <h2>2. 27SS 컬렉션 공통 질문</h2>
       <span class="panel-sub">5점(매우 그렇다) ~ 1점(전혀 그렇지 않다)</span>
+      <button type="button" class="panel-toggle" id="commonPanelToggle" aria-expanded="true"><span class="panel-chevron">▾</span>접기</button>
     </div>
-    <div id="commonList"></div>
+    <div class="panel-body" id="commonPanelBody">
+      <div id="commonList"></div>
+    </div>
   </section>
 
   <section class="panel disabled" id="productPanel">
@@ -173,8 +195,7 @@
     </div>
     <div class="toolbar">
       <div class="tabs" id="typeTabs">
-        <button class="tab-btn" data-type="all" aria-pressed="true">전체</button>
-        <button class="tab-btn" data-type="의류" aria-pressed="false">의류</button>
+        <button class="tab-btn" data-type="의류" aria-pressed="true">의류</button>
         <button class="tab-btn" data-type="가방" aria-pressed="false">가방</button>
       </div>
       <input type="text" id="searchInput" class="search-input" placeholder="품번 또는 상품명 검색">
@@ -201,6 +222,7 @@
         <label class="field-label">컬러 구성</label>
         <div class="colorlist" id="modalColors"></div>
       </div>
+      <div class="likert-guide-label">평가 척도 안내 · 5점(매우 그렇다) ~ 1점(전혀 그렇지 않다)</div><div class="likert-guide"><div class="likert-guide-cell"><b>5</b><span>매우 그렇다</span></div><div class="likert-guide-cell"><b>4</b><span>그렇다</span></div><div class="likert-guide-cell"><b>3</b><span>보통이다</span></div><div class="likert-guide-cell"><b>2</b><span>그렇지 않다</span></div><div class="likert-guide-cell"><b>1</b><span>전혀 그렇지 않다</span></div></div>
       <div class="crit-block" id="modalCriteria"></div>
       <div>
         <label class="field-label" for="modalEtc" id="modalEtcLabel">기타 개선 필요사항</label>
@@ -276,6 +298,53 @@
   var selStore = document.getElementById('selStoreName');
   var storeChip = document.getElementById('storeChip');
 
+  // ---------- sticky offsets (toolbar sticks right below the topbar) ----------
+  var topbarEl = document.querySelector('.topbar');
+  var toolbarEl = document.querySelector('.toolbar');
+  function syncStickyOffsets(){
+    if(topbarEl && toolbarEl){ toolbarEl.style.top = topbarEl.offsetHeight + 'px'; }
+  }
+  window.addEventListener('resize', syncStickyOffsets);
+
+  // ---------- collapsible panels (1. 매장 정보 / 2. 공통 질문) ----------
+  var storePanelEl = document.getElementById('storePanel');
+  var storePanelToggle = document.getElementById('storePanelToggle');
+  var storePanelSub = storePanelEl.querySelector('.panel-sub');
+  var storeSubDefault = storePanelSub.textContent;
+  var commonPanelEl = document.getElementById('commonPanel');
+  var commonPanelToggle = document.getElementById('commonPanelToggle');
+  var commonPanelSub = commonPanelEl.querySelector('.panel-sub');
+  var commonSubDefault = commonPanelSub.textContent;
+  var storeAutoCollapsed = false;
+  var commonAutoCollapsed = false;
+
+  function storeSummaryText(){
+    return '✓ ' + [state.channelType, state.channelGroup, state.storeName].filter(Boolean).join(' · ') + ' 선택완료';
+  }
+  function commonSummaryText(){
+    return '✓ 공통 질문 ' + commonAnsweredCount() + '/' + DATA.commonQuestions.length + '문항 완료';
+  }
+  function setPanelCollapsed(panelEl, toggleBtn, subEl, defaultSub, summaryFn, collapsed){
+    panelEl.classList.toggle('collapsed', collapsed);
+    toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+    toggleBtn.innerHTML = '<span class="panel-chevron">▾</span>' + (collapsed ? '펼치기' : '접기');
+    if(subEl){ subEl.textContent = collapsed ? summaryFn() : defaultSub; }
+  }
+  function toggleStorePanel(collapsed){
+    setPanelCollapsed(storePanelEl, storePanelToggle, storePanelSub, storeSubDefault, storeSummaryText, collapsed);
+  }
+  function toggleCommonPanel(collapsed){
+    setPanelCollapsed(commonPanelEl, commonPanelToggle, commonPanelSub, commonSubDefault, commonSummaryText, collapsed);
+  }
+  storePanelToggle.addEventListener('click', function(e){
+    e.stopPropagation();
+    toggleStorePanel(!storePanelEl.classList.contains('collapsed'));
+  });
+  commonPanelToggle.addEventListener('click', function(e){
+    e.stopPropagation();
+    toggleCommonPanel(!commonPanelEl.classList.contains('collapsed'));
+  });
+
   Object.keys(DATA.stores).forEach(function(t){
     var o = el('option'); o.value = t; o.textContent = t; selType.appendChild(o);
   });
@@ -338,6 +407,7 @@
     } else {
       storeChip.style.display = 'none';
     }
+    syncStickyOffsets();
   }
 
   // ---------- Step 2: common questions ----------
@@ -378,7 +448,7 @@
   var typeTabs = document.getElementById('typeTabs');
   var searchInput = document.getElementById('searchInput');
   var gridCount = document.getElementById('gridCount');
-  var currentTab = 'all';
+  var currentTab = '의류';
   var currentFiltered = [];
 
   function priceFmt(n){ return (n||0).toLocaleString('ko-KR') + '원'; }
@@ -492,13 +562,13 @@
       var top = el('div','qrow-top');
       top.appendChild(el('span','qtext', c.label + ' — ' + c.question));
       row.appendChild(top);
-      var likert = el('div','likert');
+      var likert = el('div','likert-mini');
       LIKERT.forEach(function(v){
         var label = el('label');
         var input = document.createElement('input');
         input.type = 'radio'; input.name = 'crit_'+c.key; input.value = v;
         if(saved[c.key] === v) input.checked = true;
-        var span = el('span', null, '<b>'+v+'</b>'+DATA.likertLabels[v]);
+        var span = el('span', null, String(v));
         label.appendChild(input); label.appendChild(span);
         likert.appendChild(label);
       });
@@ -509,7 +579,7 @@
     modalEtc.value = saved.etc || '';
     var idx = currentFiltered.findIndex(function(pp){ return pp.id === id; });
     modalPrev.disabled = idx <= 0;
-    modalSave.textContent = (idx === currentFiltered.length - 1) ? '저장하고 닫기' : '저장하고 다음 상품';
+    modalSave.textContent = '저장';
     modalOverlay.hidden = false;
     document.body.style.overflow = 'hidden';
   }
@@ -543,12 +613,6 @@
 
   modalSave.addEventListener('click', function(){
     persistCurrent();
-    var idx = currentFiltered.findIndex(function(pp){ return pp.id === currentModalId; });
-    if(idx !== -1 && idx < currentFiltered.length - 1){
-      openModal(currentFiltered[idx+1].id);
-      showToast('저장됨 · 다음 상품으로 이동');
-      return;
-    }
     showToast('저장되었습니다');
     closeModal();
   });
@@ -588,6 +652,19 @@
     var commonOk = commonAnsweredCount() === DATA.commonQuestions.length;
     document.getElementById('productPanel').classList.toggle('disabled', !(storeOk && commonOk));
     submitBtn.disabled = !(storeOk && commonOk);
+
+    if(storeOk && !storeAutoCollapsed){
+      storeAutoCollapsed = true;
+      toggleStorePanel(true);
+    } else if(!storeOk){
+      storeAutoCollapsed = false;
+    }
+    if(commonOk && !commonAutoCollapsed){
+      commonAutoCollapsed = true;
+      toggleCommonPanel(true);
+    } else if(!commonOk){
+      commonAutoCollapsed = false;
+    }
   }
 
   // ---------- Submit ----------
@@ -692,6 +769,7 @@
   restoreCommonUI();
   renderGrid();
   updateGates();
+  syncStickyOffsets();
 })();
 </script>
 </body>
